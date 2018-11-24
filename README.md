@@ -1,21 +1,27 @@
-TO MD
+txtToMd
 ===
-By Weng Fei Fung. Lets you copy and paste your study or meeting notes into Terminal then have a pretty up Markdown version show up on web browser. Can support text with multiple lines.
+By Weng Fei Fung. Command line tool that converts a textfile to Markdown file and opens it in the web browser. It can also accept copy and pasted multiline text in the command line and convert that (limitation: can't have the same enclosing quotes inside the text, but you can alternate between single vs double quotes, such as using single quotes to enclose the text passing to the command and having double quotes as part of inside the text).
 
-Supported Platforms
+Dependencies
 ---
-- Unix
-- MAC OS
-- Windows (Instructions not provided)
+- concurrently (sudo npm install -g concurrently)
+- http-server (sudo npm install -g http-server)
+- web browser markdown extension (eg. Markdown Preview Plus for Chrome)
 
 Use cases
 ---
-You like to take study or meeting notes in a text editor. You also took fancy signifying what's a title vs subtitle using symbols. Say for example, placing `===` under titles and `---` under subtitles, listing bullets with `- ` and the various conventions of Markdown that's as intuitive to the person programming Markdown as it is to the layperson taking notes in a text editor. You want to pretty up what you see in a web browser with a table of contents that you can use to click between sections of your notes based on the various titles and subtitles. You want the `*` highlighting and listing format that Markdown provides. Simply copy and paste all your notes (doesn't matter if there are multiple lines) into your Terminal and you'll see the pretty Markdown version on the web browser.
+You like to take study or meeting notes in a text editor. You also took fancy signifying what's a title vs subtitle using symbols. Say for example, placing `===` under titles and `---` under subtitles, listing bullets with `- ` and the various conventions of Markdown that's as intuitive to non-programmers or is just easy to speedily take notes without formatting them manually. You want to pretty up what you see in a web browser with a table of contents that you can use to click between sections of your notes based on the various titles and subtitles. You want the `*` highlighting and listing format that Markdown provides. Simply copy and paste all your notes (doesn't matter if there are multiple lines) into your Terminal and you'll see the pretty Markdown version on the web browser. Or, provide the file path to the command.
 
-Command Line example
+File example
 ---
 ```
-toMD 'Title1
+txtToMd test-me.md
+```
+
+Multitext example
+---
+```
+txtToMd 'Title1
 ===
 
 Subtitle
@@ -29,23 +35,24 @@ List
 
 Installation
 ---
-1. Move these files to a folder on your computer and keep it there. A temp.md will be generated there to be served to the browser every time you copy text to cli with the toMD command.
-2. Place this in ~/.bash_profile, changing the path leading to temp.md to the path of this README.md, and that there are two such paths:  
-`
-function toMD() { echo "$1" > ~/Freelance/htdocs/repos/toMD/temp.md; http-server -o -c-1 ~/Freelance/htdocs/repos/toMD/; };
-`
-3. Then update BASH:  
+1. Move these files to a permanent folder. A shell script will generate MD files to this folder and serve to your browser.
+2. Add this script to ~/.bash_profile, changing the Freelance path to the permanent folder (do not end in forward slash /):  
+```
+    function txtToMd() {
+                    dir=~/Freelance/htdocs/repos/txtToMd
+                    rm $dir/temp.md
+                    if [[ -f "$dir/$1" ]]
+                    then
+                        cp "$1" $dir/temp.md
+                    else
+                        echo "$1" > $dir/temp.md
+                    fi
+                    concurrently "http-server -c-1 $dir" "open http://127.0.0.1:8080/output-reader.html"
+                    };
+```
+3. Then execute the new configuration:
 `
 source ~/.bash_profile
 `
-4. Install http-server which lets my tool serve files to your browser:  
-`
-sudo npm install -g http-server
-`
-5. On your default web browser, install an extension/plugin that displays MD format. I recommend Markdown Preview Plus for Chrome because it generates a clickable Table of Contents for your markdown.
 
 That's it!
-
-Known Issues
----
-If your text has quotes, it will break the MD format at that point. For example, if you enclose your text that you pass to toMD with double quotes, then a double quote in the text will break the preview at that point. If you had enclosed with single quotes, then the preview would break at that single quote. Anyone with ideas how to work around this besides escaping the quotes or avoiding quotes in your text or bulk replacing the quotes before copying, because this isn't ideal when you may be copying the text from study notes, then feel free to let me know or push your own commit.
